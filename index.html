@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kalender Edukasi Malbia.id</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4fdf6;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #2e7d32;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      position: sticky;
+      top: 0;
+    }
+    .kalender-container {
+      max-width: 800px;
+      margin: auto;
+      padding: 1rem;
+    }
+    .bulan-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .grid-hari {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+      text-align: center;
+    }
+    .hari, .tanggal {
+      padding: 0.5rem;
+    }
+    .hari {
+      font-weight: bold;
+      color: #388e3c;
+    }
+    .tanggal {
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid #cfcfcf;
+      min-height: 60px;
+      position: relative;
+    }
+    .tanggal:hover {
+      background: #e8f5e9;
+    }
+    .event {
+      font-size: 0.7rem;
+      color: #2e7d32;
+      margin-top: 5px;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 300px;
+      text-align: center;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .btn {
+      background: #2e7d32;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header>📆 Kalender Syamsiah – Malbia.id</header>
+
+<div class="kalender-container">
+  <div class="bulan-nav">
+    <button onclick="ubahBulan(-1)">◀</button>
+    <h2 id="bulanTahun"></h2>
+    <button onclick="ubahBulan(1)">▶</button>
+  </div>
+
+  <div class="grid-hari">
+    <div class="hari">M</div><div class="hari">S</div><div class="hari">S</div>
+    <div class="hari">R</div><div class="hari">K</div><div class="hari">J</div><div class="hari">S</div>
+  </div>
+
+  <div class="grid-hari" id="tanggalGrid"></div>
+</div>
+
+<div class="modal" id="modalEvent">
+  <div class="modal-content">
+    <h3 id="modalTanggal">Tambah Kegiatan</h3>
+    <input type="text" id="eventInput" placeholder="Nama kegiatan..." />
+    <button class="btn" onclick="simpanEvent()">Simpan</button>
+  </div>
+</div>
+
+<script>
+  let bulanSekarang = new Date().getMonth();
+  let tahunSekarang = new Date().getFullYear();
+  let dataEvent = JSON.parse(localStorage.getItem('malbia_kegiatan')) || {};
+
+  function renderKalender() {
+    const bulanNama = ["Januari","Februari","Maret","April","Mei","Juni",
+                       "Juli","Agustus","September","Oktober","November","Desember"];
+    document.getElementById("bulanTahun").textContent = `${bulanNama[bulanSekarang]} ${tahunSekarang}`;
+
+    const grid = document.getElementById("tanggalGrid");
+    grid.innerHTML = "";
+
+    const firstDay = new Date(tahunSekarang, bulanSekarang, 1).getDay(); // 0 = Minggu
+    const jumlahHari = new Date(tahunSekarang, bulanSekarang + 1, 0).getDate();
+
+    let padding = (firstDay + 6) % 7; // Menyesuaikan agar Senin = awal
+    for (let i = 0; i < padding; i++) {
+      grid.innerHTML += `<div></div>`;
+    }
+
+    for (let tgl = 1; tgl <= jumlahHari; tgl++) {
+      const key = `${tahunSekarang}-${(bulanSekarang+1).toString().padStart(2,'0')}-${tgl.toString().padStart(2,'0')}`;
+      const kegiatan = dataEvent[key] || "";
+
+      grid.innerHTML += `
+        <div class="tanggal" onclick="bukaModal('${key}')">
+          ${tgl}
+          ${kegiatan ? `<div class="event">${kegiatan}</div>` : ""}
+        </div>`;
+    }
+  }
+
+  function ubahBulan(offset) {
+    bulanSekarang += offset;
+    if (bulanSekarang < 0) {
+      bulanSekarang = 11;
+      tahunSekarang--;
+    } else if (bulanSekarang > 11) {
+      bulanSekarang = 0;
+      tahunSekarang++;
+    }
+    renderKalender();
+  }
+
+  let tanggalDipilih = "";
+
+  function bukaModal(tanggal) {
+    tanggalDipilih = tanggal;
+    document.getElementById("modalTanggal").textContent = `Tambah Kegiatan - ${tanggal}`;
+    document.getElementById("eventInput").value = dataEvent[tanggal] || "";
+    document.getElementById("modalEvent").style.display = "flex";
+  }
+
+  function simpanEvent() {
+    const isi = document.getElementById("eventInput").value.trim();
+    if (isi) {
+      dataEvent[tanggalDipilih] = isi;
+    } else {
+      delete dataEvent[tanggalDipilih];
+    }
+    localStorage.setItem('malbia_kegiatan', JSON.stringify(dataEvent));
+    document.getElementById("modalEvent").style.display = "none";
+    renderKalender();
+  }
+
+  // Tutup modal jika diklik di luar
+  window.onclick = function(e) {
+    if (e.target.id === "modalEvent") {
+      document.getElementById("modalEvent").style.display = "none";
+    }
+  }
+
+  renderKalender();
+</script>
+
+</body>
+</html>
