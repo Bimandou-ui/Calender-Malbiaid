@@ -1,200 +1,288 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kalender Edukasi Malbia.id</title>
-  <meta name="google-site-verification" content="TZ3TThJMWejuNXR7XhxsU1aujAc9I_zSoZMDp0MSa5w" />
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calender-Malbia.id</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
     body {
-      font-family: sans-serif;
-      background: #f4fdf6;
-      margin: 0;
-      padding: 0;
+        display: flex; flex-direction: column; align-items: center;
+        min-height: 100vh;
+        background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScEZousFQgecnj7ns19D60Zj-dfZzzbSquHJbSPrpNomUm1unwoh8GRhJG&s=10') no-repeat center center fixed;
+        background-size: cover;
+        padding: 20px;
+        position: relative;
     }
-    header {
-      background: #2e7d32;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.5rem;
-      position: sticky;
-      top: 0;
+    body::before {
+        content: "";
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 0;
     }
-    .kalender-container {
-      max-width: 800px;
-      margin: auto;
-      padding: 1rem;
+    .calendar, .info-box {
+        position: relative;
+        z-index: 1;
     }
-    .bulan-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
+    .calendar {
+        width: 100%;
+        max-width: 400px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        overflow: hidden;
+        margin-bottom: 25px;
+        backdrop-filter: blur(6px);
     }
-    .grid-hari {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 0.5rem;
-      text-align: center;
+    .calendar header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 15px 20px; background: #56ab2f; color: #fff;
     }
-    .hari, .tanggal {
-      padding: 0.5rem;
+    .calendar header h2 { font-size: 1.4em; text-align: center; flex: 1; }
+    .calendar header button {
+        background: #fff; color: #56ab2f; border: none; border-radius: 50%;
+        width: 35px; height: 35px; font-size: 1.2em; cursor: pointer;
+        font-weight: bold; transition: 0.3s;
     }
-    .hari {
-      font-weight: bold;
-      color: #388e3c;
+    .calendar header button:hover { background: #eee; }
+    .calendar table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+        table-layout: fixed; /* Semua kolom seragam */
     }
-    .tanggal {
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1px solid #cfcfcf;
-      min-height: 60px;
-      position: relative;
+    .calendar thead { background: #f4f4f4; }
+    .calendar th, .calendar td {
+        width: 14.28%;
+        height: 60px;
+        font-size: 1em;
+        position: relative;
+        padding: 0;
+        vertical-align: middle;
     }
-    .tanggal:hover {
-      background: #e8f5e9;
+    .calendar td:hover { background: #c8f7c5; border-radius: 50%; }
+    .today { background: #56ab2f; color: #fff; border-radius: 50%; }
+    .note-dot {
+        position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+        width: 6px; height: 6px; background: #ff4757; border-radius: 50%;
     }
-    .event {
-      font-size: 0.7rem;
-      color: #2e7d32;
-      margin-top: 5px;
+    .holiday {
+        background: #ffeaa7;
+        border-radius: 50%;
+        font-weight: bold;
+        color: #d35400;
     }
+    .tooltip {
+        position: absolute; background: #333; color: #fff; font-size: 12px;
+        padding: 3px 6px; border-radius: 5px; display: none; top: -25px; left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+    td:hover .tooltip { display: block; }
     .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 10;
     }
     .modal-content {
-      background: white;
-      padding: 1rem;
-      border-radius: 10px;
-      max-width: 300px;
-      text-align: center;
+        background: #fff; padding: 20px; border-radius: 10px; width: 300px; text-align: center;
     }
-    .modal-content input {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
+    .modal-content h3 { margin-bottom: 10px; }
+    textarea {
+        width: 100%; height: 80px; resize: none; margin-bottom: 10px; padding: 10px; font-size: 14px;
     }
-    .btn {
-      background: #2e7d32;
-      color: white;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 6px;
-      margin-top: 0.5rem;
-      cursor: pointer;
+    button.save, button.close {
+        padding: 8px 12px; margin: 5px; border: none; border-radius: 5px; cursor: pointer;
     }
-  </style>
+    button.save { background: #56ab2f; color: #fff; }
+    button.close { background: #ccc; }
+    .info-box {
+        background: rgba(255,255,255,0.9);
+        border-radius: 15px;
+        padding: 15px;
+        max-width: 600px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        text-align: center;
+        margin-top: 20px;
+        backdrop-filter: blur(6px);
+    }
+    .info-box h3 { margin-bottom: 10px; color: #333; }
+    .info-box img {
+        width: 120px; height: auto; border-radius: 10px; margin: 8px;
+    }
+    .info-box p {
+        text-align: justify; font-size: 14px; color: #444;
+    }
+    @media (max-width: 500px) {
+        .calendar { max-width: 95%; }
+        .calendar th, .calendar td {
+            font-size: 0.85em;
+            height: 50px;
+        }
+    }
+</style>
 </head>
 <body>
-
-<header>📆 Kalender Syamsiah – Malbia.id</header>
-
-<div class="kalender-container">
-  <div class="bulan-nav">
-    <button onclick="ubahBulan(-1)">◀</button>
-    <h2 id="bulanTahun"></h2>
-    <button onclick="ubahBulan(1)">▶</button>
-  </div>
-
-  <div class="grid-hari">
-    <div class="hari">M</div><div class="hari">S</div><div class="hari">S</div>
-    <div class="hari">R</div><div class="hari">K</div><div class="hari">J</div><div class="hari">S</div>
-  </div>
-
-  <div class="grid-hari" id="tanggalGrid"></div>
+<div class="calendar">
+    <header>
+        <button id="prev">&#10094;</button>
+        <h2 id="month-year"></h2>
+        <button id="next">&#10095;</button>
+    </header>
+    <table>
+        <thead>
+            <tr>
+                <th>Min</th>
+                <th>Sen</th>
+                <th>Sel</th>
+                <th>Rab</th>
+                <th>Kam</th>
+                <th>Jum</th>
+                <th>Sab</th>
+            </tr>
+        </thead>
+        <tbody id="calendar-body"></tbody>
+    </table>
 </div>
 
-<div class="modal" id="modalEvent">
-  <div class="modal-content">
-    <h3 id="modalTanggal">Tambah Kegiatan</h3>
-    <input type="text" id="eventInput" placeholder="Nama kegiatan..." />
-    <button class="btn" onclick="simpanEvent()">Simpan</button>
-  </div>
+<div class="info-box">
+    <h3>Tentang Kalender Masehi</h3>
+    <div>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPqY3tj2wCF_b_Tx1wLQl55EidwmC7kNdDcb_ecDJ-yrtkICr2R-ju5IiT&s=10" alt="Julius Caesar">
+        <img src="https://static.wixstatic.com/media/2b11c5_2bfa2700c9bf4b41870166931861df65~mv2.jpg/v1/fill/w_1000,h_563,al_c,q_85,usm_0.66_1.00_0.01/2b11c5_2bfa2700c9bf4b41870166931861df65~mv2.jpg" alt="Paus Gregorius XIII">
+    </div>
+    <p>
+        Kalender Masehi, dikenal juga sebagai Kalender Gregorian, adalah sistem penanggalan yang digunakan hampir di seluruh dunia saat ini.
+        Awalnya diperkenalkan oleh Julius Caesar pada tahun 46 SM sebagai kalender Julian.
+        Namun, karena perhitungan tahun tropis kurang akurat, Paus Gregorius XIII mereformasi kalender ini pada tahun 1582 menjadi Kalender Gregorian yang kita pakai sekarang.
+    </p>
+</div>
+
+<div class="modal" id="noteModal">
+    <div class="modal-content">
+        <h3>Catatan untuk <span id="selected-date"></span></h3>
+        <textarea id="noteText" placeholder="Tulis catatan..."></textarea>
+        <br>
+        <button class="save" id="saveNote">Simpan</button>
+        <button class="close" id="closeModal">Tutup</button>
+    </div>
 </div>
 
 <script>
-  let bulanSekarang = new Date().getMonth();
-  let tahunSekarang = new Date().getFullYear();
-  let dataEvent = JSON.parse(localStorage.getItem('malbia_kegiatan')) || {};
+    const monthYear = document.getElementById('month-year');
+    const calendarBody = document.getElementById('calendar-body');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const noteModal = document.getElementById('noteModal');
+    const selectedDateEl = document.getElementById('selected-date');
+    const noteText = document.getElementById('noteText');
+    const saveNoteBtn = document.getElementById('saveNote');
+    const closeModalBtn = document.getElementById('closeModal');
 
-  function renderKalender() {
-    const bulanNama = ["Januari","Februari","Maret","April","Mei","Juni",
-                       "Juli","Agustus","September","Oktober","November","Desember"];
-    document.getElementById("bulanTahun").textContent = `${bulanNama[bulanSekarang]} ${tahunSekarang}`;
+    const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
-    const grid = document.getElementById("tanggalGrid");
-    grid.innerHTML = "";
+    const holidays = {
+        "1-1": "Tahun Baru Masehi",
+        "21-4": "Hari Kartini",
+        "1-5": "Hari Buruh Internasional",
+        "17-8": "Hari Proklamasi RI",
+        "25-12": "Hari Natal"
+    };
 
-    const firstDay = new Date(tahunSekarang, bulanSekarang, 1).getDay(); // 0 = Minggu
-    const jumlahHari = new Date(tahunSekarang, bulanSekarang + 1, 0).getDate();
+    let date = new Date();
+    let currentMonth = date.getMonth();
+    let currentYear = date.getFullYear();
+    let selectedDate = null;
 
-    let padding = (firstDay + 6) % 7; // Menyesuaikan agar Senin = awal
-    for (let i = 0; i < padding; i++) {
-      grid.innerHTML += `<div></div>`;
+    let notes = JSON.parse(localStorage.getItem("calendarNotes")) || {};
+
+    function generateCalendar(month, year) {
+        calendarBody.innerHTML = "";
+        monthYear.textContent = `${months[month]} ${year}`;
+        let firstDay = new Date(year, month, 1).getDay();
+        let daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        let row = document.createElement("tr");
+        let dayCounter = 0;
+
+        for (let i = 0; i < firstDay; i++) {
+            row.appendChild(document.createElement("td"));
+            dayCounter++;
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            let cell = document.createElement("td");
+            cell.textContent = day;
+
+            if (day === date.getDate() && month === date.getMonth() && year === date.getFullYear()) {
+                cell.classList.add("today");
+            }
+
+            let dateKey = `${day}-${month+1}-${year}`;
+            if (notes[dateKey]) {
+                let dot = document.createElement("div");
+                dot.classList.add("note-dot");
+                cell.appendChild(dot);
+            }
+
+            let holidayKey = `${day}-${month+1}`;
+            if (holidays[holidayKey]) {
+                cell.classList.add("holiday");
+                let tooltip = document.createElement("div");
+                tooltip.classList.add("tooltip");
+                tooltip.textContent = holidays[holidayKey];
+                cell.appendChild(tooltip);
+            }
+
+            cell.addEventListener("click", () => {
+                selectedDate = dateKey;
+                selectedDateEl.textContent = dateKey;
+                noteText.value = notes[dateKey] || "";
+                noteModal.style.display = "flex";
+            });
+
+            row.appendChild(cell);
+            dayCounter++;
+
+            if (dayCounter % 7 === 0) {
+                calendarBody.appendChild(row);
+                row = document.createElement("tr");
+            }
+        }
+        if (row.children.length > 0) {
+            calendarBody.appendChild(row);
+        }
     }
 
-    for (let tgl = 1; tgl <= jumlahHari; tgl++) {
-      const key = `${tahunSekarang}-${(bulanSekarang+1).toString().padStart(2,'0')}-${tgl.toString().padStart(2,'0')}`;
-      const kegiatan = dataEvent[key] || "";
+    prevBtn.addEventListener("click", () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        generateCalendar(currentMonth, currentYear);
+    });
 
-      grid.innerHTML += `
-        <div class="tanggal" onclick="bukaModal('${key}')">
-          ${tgl}
-          ${kegiatan ? `<div class="event">${kegiatan}</div>` : ""}
-        </div>`;
-    }
-  }
+    nextBtn.addEventListener("click", () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        generateCalendar(currentMonth, currentYear);
+    });
 
-  function ubahBulan(offset) {
-    bulanSekarang += offset;
-    if (bulanSekarang < 0) {
-      bulanSekarang = 11;
-      tahunSekarang--;
-    } else if (bulanSekarang > 11) {
-      bulanSekarang = 0;
-      tahunSekarang++;
-    }
-    renderKalender();
-  }
+    closeModalBtn.addEventListener("click", () => noteModal.style.display = "none");
 
-  let tanggalDipilih = "";
+    saveNoteBtn.addEventListener("click", () => {
+        if (selectedDate) {
+            notes[selectedDate] = noteText.value;
+            localStorage.setItem("calendarNotes", JSON.stringify(notes));
+            generateCalendar(currentMonth, currentYear);
+            noteModal.style.display = "none";
+        }
+    });
 
-  function bukaModal(tanggal) {
-    tanggalDipilih = tanggal;
-    document.getElementById("modalTanggal").textContent = `Tambah Kegiatan - ${tanggal}`;
-    document.getElementById("eventInput").value = dataEvent[tanggal] || "";
-    document.getElementById("modalEvent").style.display = "flex";
-  }
-
-  function simpanEvent() {
-    const isi = document.getElementById("eventInput").value.trim();
-    if (isi) {
-      dataEvent[tanggalDipilih] = isi;
-    } else {
-      delete dataEvent[tanggalDipilih];
-    }
-    localStorage.setItem('malbia_kegiatan', JSON.stringify(dataEvent));
-    document.getElementById("modalEvent").style.display = "none";
-    renderKalender();
-  }
-
-  // Tutup modal jika diklik di luar
-  window.onclick = function(e) {
-    if (e.target.id === "modalEvent") {
-      document.getElementById("modalEvent").style.display = "none";
-    }
-  }
-
-  renderKalender();
+    generateCalendar(currentMonth, currentYear);
 </script>
-
 </body>
 </html>
